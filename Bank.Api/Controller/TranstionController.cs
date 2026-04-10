@@ -1,7 +1,5 @@
 ﻿using Bank.Application.Interface;
-using Bank.Application.Service;
 using Bank.Domain.Dtos.Request;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Bank.Api.Controller
@@ -11,15 +9,27 @@ namespace Bank.Api.Controller
     public class TranstionController : ControllerBase
     {
         private IProcessWebHookService _processWebHookService;
+        private IConfiguration _configuration;
 
-        public TranstionController(IProcessWebHookService processWebHookService)
+        public TranstionController(IProcessWebHookService processWebHookService, IConfiguration configuration)
         {
             _processWebHookService = processWebHookService;
+            _configuration = configuration;
         }
 
         [HttpPost("webhook")]
         public async Task<IActionResult> ProcessWebHook([FromBody] TransactionWebHookRequest transactionWebHookRequest)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!IsValidApiKey())
+            {
+                return Unauthorized("Unauthorized access");
+            }
+
             var response = await _processWebHookService.ProcessTransactionWebhook(transactionWebHookRequest);
             return response.Success ? Ok(response) : BadRequest(response);
         }
@@ -30,6 +40,13 @@ namespace Bank.Api.Controller
         {
             var response = await _processWebHookService.ProcessTransactionWebhookV2(transactionWebHookRequest);
             return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        private bool IsValidApiKey()
+        {
+            var requestKey = Request.Headers["x-api-key"].ToString();
+            var validKey = _configuration["ApiKey"];
+            return !string.IsNullOrEmpty(validKey) && string.Equals(requestKey, validKey, StringComparison.Ordinal);
         }
     }
 }
