@@ -6,18 +6,18 @@ namespace Bank.Api.Controller
 {
     [Route("api/v1/[controller]")]
     [ApiController]
-    public class TranstionController : ControllerBase
+    public class WebhookController : ControllerBase
     {
         private IProcessWebHookService _processWebHookService;
         private IConfiguration _configuration;
 
-        public TranstionController(IProcessWebHookService processWebHookService, IConfiguration configuration)
+        public WebhookController(IProcessWebHookService processWebHookService, IConfiguration configuration)
         {
             _processWebHookService = processWebHookService;
             _configuration = configuration;
         }
 
-        [HttpPost("webhook")]
+        [HttpPost("transactions")]
         public async Task<IActionResult> ProcessWebHook([FromBody] TransactionWebHookRequest transactionWebHookRequest)
         {
             if (!ModelState.IsValid)
@@ -35,7 +35,7 @@ namespace Bank.Api.Controller
         }
 
 
-        [HttpPost("webhook-event")]
+        [HttpPost("transactions-event")]
         public async Task<IActionResult> ProcessEventWebHook([FromBody] TransactionWebHookRequest transactionWebHookRequest)
         {
             var response = await _processWebHookService.ProcessTransactionWebhookV2(transactionWebHookRequest);
