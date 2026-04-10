@@ -38,6 +38,11 @@ namespace Bank.Api.Controller
         [HttpPost("transactions-event")]
         public async Task<IActionResult> ProcessEventWebHook([FromBody] TransactionWebHookRequest transactionWebHookRequest)
         {
+            if (!IsValidApiKey())
+            {
+                return Unauthorized("Unauthorized access");
+            }
+
             var response = await _processWebHookService.ProcessTransactionWebhookV2(transactionWebHookRequest);
             return response.Success ? Ok(response) : BadRequest(response);
         }

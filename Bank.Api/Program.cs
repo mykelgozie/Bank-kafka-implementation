@@ -3,6 +3,7 @@ using Bank.Application.Event;
 using Bank.Application.Interface;
 using Bank.Application.Repository;
 using Bank.Application.Service;
+using Bank.Domain.Configs;
 using Bank.Domain.Dtos.SettingsModels;
 using Bank.Domain.Entities;
 using Bank.Infrastructure.Persistence;
@@ -68,7 +69,7 @@ namespace Bank.Api
                     });
             });
 
-
+            builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
             var jwtSettings = builder.Configuration.GetSection("JWT").Get<JwtSettings>();
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JWT"));
             builder.Services.AddAuthentication(options =>

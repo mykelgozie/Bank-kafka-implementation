@@ -100,13 +100,15 @@ namespace Bank.Application.Service
         {
             try
             {
-                // string json = "{\"TransactionId\":\"TXN12345\",\"Amount\":1500.75,\"Fee\":25.50,\"CurrencyCode\":\"NGN\",\"Status\":1}";
-                //transactionWebHookRequest.TransactionPayload = json;
+                string json = "{\"TransactionId\":\"TXN12345\",\"Amount\":1500.75,\"Fee\":25.50,\"CurrencyCode\":\"NGN\",\"Status\":1}";
+                transactionWebHookRequest.TransactionPayload = json;
+       
 
                 _logger.LogInformation("Processing webhook with Payload: {payload}", transactionWebHookRequest.TransactionPayload);
 
                 var transactionData = JsonSerializer.Deserialize<TransactionRequest>(transactionWebHookRequest.TransactionPayload);
                 transactionData.Payload = transactionWebHookRequest.TransactionPayload;
+                transactionData.TransactionId  = Guid.NewGuid().ToString().Substring(0, 8);
 
                 var validateResponse = await _transactionService.ValidateTransaction(transactionData);
                 if (!validateResponse.Success)

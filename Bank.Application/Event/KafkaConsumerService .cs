@@ -1,8 +1,12 @@
 ﻿using Bank.Application.Interface;
+using Bank.Domain.Configs;
+using Bank.Domain.Constants;
 using Bank.Domain.Dtos.Request;
 using Confluent.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace Bank.Application.Event
@@ -10,10 +14,14 @@ namespace Bank.Application.Event
     public class KafkaConsumerService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly KafkaSettings _kafkaSettings;
+        private readonly ILogger<KafkaConsumerService> _logger;
 
-        public KafkaConsumerService(IServiceScopeFactory scopeFactory)
+        public KafkaConsumerService(IServiceScopeFactory scopeFactory, IOptions<KafkaSettings> kafkaOptions, ILogger<KafkaConsumerService> logger)
         {
             _scopeFactory = scopeFactory;
+            _kafkaSettings = kafkaOptions.Value;
+            _logger = logger;
         }
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -25,8 +33,8 @@ namespace Bank.Application.Event
         {
             var config = new ConsumerConfig
             {
-                BootstrapServers = "localhost:9092",
-                GroupId = "transaction-group-v2",
+                BootstrapServers = _kafkaSettings.BootstrapServers,
+                GroupId = _kafkaSettings.ConsumerGroupId,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = false,
                 EnableAutoOffsetStore = false,
@@ -43,7 +51,7 @@ namespace Bank.Application.Event
                 })
                 .Build();
 
-            consumer.Subscribe("tran-topic");
+            consumer.Subscribe(EventTopics.Transactions);
 
             Console.WriteLine("Kafka Consumer started...");
 
